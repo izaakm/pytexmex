@@ -9,6 +9,7 @@
 
 \maketitle
 
+\section{The probability mass function}
 The Poisson-lognormal pmf is a convolution of the Poisson pmf with the lognormal pdf:
 \begin{align}
     \mathrm{Poilog}(n; \mu, \sigma) &= \int_0^\infty \mathrm{Poisson}(n; \lambda) \times \mathrm{Lognormal}(\lambda; \mu, \sigma) \,\mathrm{d}\lambda \\
@@ -42,5 +43,16 @@ enough from $x^\star$ that integrating down to that point will capture most of t
 and try again.
 \end{enumerate}
 To find the upper bound, repeat but with $x^\star + \Delta x$.
+
+\section{Maximum likelihood estimation}
+One trick here is that $\sigma$ must be nonnegative. The easy way to establish this
+constraint is to perform the optimization over $(\mu, \log \sigma)$, which is unconstrained.
+
+The other important trick is picking the initial conditions. Good guesses for $\mu$ and
+$\sigma$ are, I think, just the mean and standard deviation of the logarithms of the data
+themselves, i.e., the maximum likelihood parameters for a plain lognormal distribution.
+This works most of the time, but I've found that, to cover all cases, I've needed to do some
+mild grid searching. For all the ocean and mouse gut microbiome samples I've used, I've been
+able to find a match using $\sigma = 1.0$ and $\mu \in \{-2.0, -1.0, 0, 1.0, 2.0\}$.
 
 \end{document}
