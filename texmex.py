@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import scipy.integrate, scipy.stats, scipy.optimize
-import numpy as np
+import numpy as np, pandas as pd
 
 def poilog_exp_integrand(x, n, mu, sigma):
     '''the part of the poilog integral that is inside the exponent'''
@@ -104,3 +104,8 @@ def poilog_fit(ns, trunc=True, x0=None):
     mu_opt, log_sigma_opt = scipy.optimize.fmin(f, x0)
     sigma_opt = np.exp(log_sigma_opt)
     return mu_opt, sigma_opt
+
+otu = pd.read_table('data/pmaseq.txt')
+n = otu['154']
+fit = poilog_fit(n)
+print(fit)
