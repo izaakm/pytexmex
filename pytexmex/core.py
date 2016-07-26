@@ -1,14 +1,19 @@
-#!/usr/bin/env python3
-
 import scipy.integrate, scipy.stats, scipy.optimize
 import numpy as np, pandas as pd
 
 def poilog_exp_integrand(x, n, mu, sigma):
-    '''the part of the poilog integral that is inside the exponent'''
+    '''
+    The part of the poilog integral that is inside the exponent.
+    '''
     return n * x - np.exp(x) - 0.5 * ((x - mu) / sigma) ** 2
 
 def poilog_exp_integrand_max(n, mu, sigma):
-    '''find the maximum value and position of the exponential part of the integrand'''
+    '''
+    Find the maximum value and position of the exponential part of the integrand.
+    
+    Returns: (float, float)
+      The position and value of the maximum
+    '''
     f = lambda x: -poilog_exp_integrand(x, n, mu, sigma)
     fprime = lambda x: -(n - np.exp(x) - (x - mu) / sigma ** 2)
     res = scipy.optimize.fmin_bfgs(f, 0.0, fprime, disp=False, full_output=True)
@@ -21,6 +26,9 @@ def poilog_bounds(n, mu, sigma, fold=1e-9, guess=1.0, guess_multiplier=2.0):
     Pick reasonable bounds for the poilog integral. Start at the place where
     the integrand is maximized, then go out left and right until the integrand
     falls to some fold of its maximum value.
+
+    Returns: (float, float)
+       lower bound, upper bound
     '''
 
     xopt, fopt = poilog_exp_integrand_max(n, mu, sigma)
@@ -36,7 +44,9 @@ def poilog_bounds(n, mu, sigma, fold=1e-9, guess=1.0, guess_multiplier=2.0):
     return lb, ub
 
 def poilog_pmf_notrunc(n, mu, sigma):
-    '''probability mass function, no truncation'''
+    '''
+    Probability mass function without truncation
+    '''
 
     if n < 0:
         raise ValueError("poilog takes nonnegative integers")
@@ -52,7 +62,9 @@ def poilog_pmf_notrunc(n, mu, sigma):
     return val
 
 def poilog_pmf(n, mu, sigma, trunc=True):
-    '''probability mass function'''
+    '''
+    Probability mass function (with optional zero truncation)
+    '''
 
     if not trunc:
         return poilog_pmf_notrunc(n, mu, sigma)
@@ -63,7 +75,9 @@ def poilog_pmf(n, mu, sigma, trunc=True):
             return poilog_pmf_notrunc(n, mu, sigma) / (1.0 - poilog_pmf_notrunc(0, mu, sigma))
 
 def poilog_cdf(ns, mu, sigma, trunc=True):
-    '''cumulative distribution function'''
+    '''
+    Cumulative distribution function
+    '''
 
     # compute all the values up to the biggest n
     all_pmfs = [poilog_pmf(n, mu, sigma, trunc) for n in range(max(ns) + 1)]
@@ -72,7 +86,9 @@ def poilog_cdf(ns, mu, sigma, trunc=True):
     return [all_cdfs[n] for n in ns]
 
 def poilog_ll(ns, mu, sigma, trunc=True, threshold=1e-120):
-    '''log likelihood'''
+    '''
+    Log likelihood of a list of counts
+    '''
 
     ll = 0.0
     for n, counts in scipy.stats.itemfreq(ns):
@@ -84,12 +100,17 @@ def poilog_ll(ns, mu, sigma, trunc=True, threshold=1e-120):
 
     return ll
 
-def poilog_fit(ns, trunc=True, x0=None):
+def poilog_fit(ns, trunc=True, x0=None, full_output=False):
     '''
     Maximum likelihood estimation fit
     
     x0: (float, float)
       The starting mu and sigma for the MLE optimization. If None, then a guess will be supplied.
+    full_output: bool
+      If True, then give a dictionary of output, including the log likelihood and optimizer results
+
+    Returns: (float, float) [or dict if `full_output` is selected]
+      Optimal mu and sigma [or a dictionary of results]
     ''' 
 
     ns = np.array(ns)
@@ -101,6 +122,11 @@ def poilog_fit(ns, trunc=True, x0=None):
 
     f = lambda x: -poilog_ll(ns, x[0], np.exp(x[1]), trunc)
 
-    mu_opt, log_sigma_opt = scipy.optimize.fmin(f, x0)
+    xopt, fopt, iters, funcalls, warnflag = scipy.optimize.fmin(f, x0)
+    mu_opt, log_sigma_opt = xopt
     sigma_opt = np.exp(log_sigma_opt)
-    return mu_opt, sigma_opt
+    
+    if full_output:
+        return {'mu_opt': mu_opt, 'sigma_opt': sigma_opt, 'xopt': xopt, 'fopt': fopt, 'iter': iters, 'funcalls': funcalls, 'warnflag': warnflag, 'log_likelihood': -fopt}
+    else:
+        return mu_opt, sigma_opt
