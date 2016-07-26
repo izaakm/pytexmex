@@ -104,8 +104,3 @@ def poilog_fit(ns, trunc=True, x0=None):
     mu_opt, log_sigma_opt = scipy.optimize.fmin(f, x0)
     sigma_opt = np.exp(log_sigma_opt)
     return mu_opt, sigma_opt
-
-otu = pd.read_table('data/pmaseq.txt')
-n = otu['154']
-fit = poilog_fit(n)
-print(fit)
