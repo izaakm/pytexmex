@@ -15,6 +15,16 @@ It's a moderately complicated integral that requires some finesse. More on the :
     :undoc-members:
     :show-inheritance:
 
+pytexmex.helpers module
+-----------------------
+
+This submodule focuses on front-end user functions.
+
+.. automodule:: pytexmex.helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

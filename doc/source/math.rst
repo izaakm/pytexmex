@@ -27,21 +27,26 @@ from the maximum in a reliable way, so we can get around these problems. First, 
 that value inside the exponential integrand. Second, I try to compute the bounds of the numerical 
 integral intelligently.
 
-Specifically, I examine the three terms inside the integral:
+As :math:`x \to \infty`, I've found that numerical integrators get confused, since the integrand
+drops off like :math:`\exp [ \exp (-x) ]`. To get around this problem,
+I examine the three terms inside the integral:
 
 .. math::
 
    f(x) \equiv nx - e^x - \frac{1}{2} \left( \frac{x - \mu}{\sigma} \right)^2
 
-It is easy to numerically compute the :math:`x^\star` that maximizes :math:`f`. To find a good lower
+It is easy to numerically compute the :math:`x^\star` that maximizes :math:`f`. To find a good upper
 bound, I establish some threshold :math:`T` (say, :math:`10^{-10}`) and iterate:
 
 1. Guess a difference :math:`\Delta x`, say :math:`1.0`.
-2. If :math:`f(x^\star - \Delta x) / f(x^\star) < T`, then the lower bound :math:`x^\star - \Delta x` is far
-   enough away from :math:`x^\star` that integrating down to that point will capture most of integral.
+2. If :math:`f(x^\star + \Delta x) / f(x^\star) < T`, then the lower bound :math:`x^\star + \Delta x` is far
+   enough away from :math:`x^\star` that integrating up to that point will capture most of integral.
 3. If the ratio is not low enough, multiply :math:`\Delta x` by some factor, say :math:`2.0`, and try again.
 
-To find the upper bound, repeat but with :math:`x^\star + \Delta x`.
+As :math:`x \to -\infty`, the integrand decays like :math:`\exp (-x^2)`, which doesn't seem to cause
+problems for numerical integrators. You could repeat the process used to find the upper bound to find
+the lower bound (replacing :math:`x^\star + \Delta x` with :math:`x^\star - \Delta x`), but I
+found that just using :math:`-\infty` as the lower bound works well.
 
 Maximum likelihood estimation
 -----------------------------
