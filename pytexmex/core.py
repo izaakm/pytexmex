@@ -66,13 +66,13 @@ def poilog_pmf(n, mu, sigma, trunc=True):
     Probability mass function (with optional zero truncation)
     '''
 
-    if not trunc:
-        return poilog_pmf_notrunc(n, mu, sigma)
-    else:
+    if trunc:
         if n == 0:
             return 0.0
         else:
             return poilog_pmf_notrunc(n, mu, sigma) / (1.0 - poilog_pmf_notrunc(0, mu, sigma))
+    else:
+        return poilog_pmf_notrunc(n, mu, sigma)
 
 def poilog_cdf(ns, mu, sigma, trunc=True):
     '''
@@ -107,10 +107,10 @@ def poilog_fit(ns, trunc=True, x0=None, full_output=False):
     x0: (float, float)
       The starting mu and sigma for the MLE optimization. If None, then a guess will be supplied.
     full_output: bool
-      If True, then give a dictionary of output, including the log likelihood and optimizer results
+      If True, then also return the OptimizeResult object
 
-    Returns: (float, float) [or dict if `full_output` is selected]
-      Optimal mu and sigma [or a dictionary of results]
+    Returns: (float, float) or (float, float, OptimizeResult)
+      Optimal mu and sigma (and optionally the rest of the data)
     ''' 
 
     ns = np.array(ns)
@@ -122,11 +122,11 @@ def poilog_fit(ns, trunc=True, x0=None, full_output=False):
 
     f = lambda x: -poilog_ll(ns, x[0], np.exp(x[1]), trunc)
 
-    xopt, fopt, iters, funcalls, warnflag = scipy.optimize.fmin(f, x0)
-    mu_opt, log_sigma_opt = xopt
+    res = scipy.optimize.minimize(f, x0, method='Nelder-Mead')
+    mu_opt, log_sigma_opt = res.x
     sigma_opt = np.exp(log_sigma_opt)
     
     if full_output:
-        return {'mu_opt': mu_opt, 'sigma_opt': sigma_opt, 'xopt': xopt, 'fopt': fopt, 'iter': iters, 'funcalls': funcalls, 'warnflag': warnflag, 'log_likelihood': -fopt}
+        return mu_opt, sigma_opt, res
     else:
         return mu_opt, sigma_opt

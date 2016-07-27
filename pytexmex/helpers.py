@@ -24,6 +24,32 @@ def f_transform_sample(ns, trunc=True):
     cdf = poilog_cdf(ns, mu, sigma, trunc)
     return cdf
 
+def transform_table(table, transform, trunc=True):
+    '''
+    Transform a table, column by column
+
+    table: pandas.DataFrame
+      the OTU table; all its columns should be the integer counts
+    transform: function :: list of integers -> list of integers
+      the data transformation to be applied to each column. must have
+      mu, sigma, and trunc as parameters
+
+    returns: pandas.DataFrame
+    '''
+
+    def f(ns):
+        mu, sigma = poilog_fit(ns, trunc)
+        transformed_ns = transform(ns, mu=mu, sigma=sigma, trunc=trunc)
+        return transformed_ns
+
+    return table.apply(f, axis=0)
+
+def z_transform_table(table, trunc=True):
+    return transform_table(table, transform=z_transform_sample, trunc=trunc)
+
+def f_transform_table(table, trunc=True):
+    return transform_table(table, transform=f_transform_sample, trunc=trun)
+
 def pp_plot_data(ns, trunc=True):
     '''
     Generate data for visualizing the quality of the poilog fit. One day I should use
@@ -34,19 +60,12 @@ def pp_plot_data(ns, trunc=True):
       the empirical and theoretical cdfs
     '''
 
-    # compute the empirical fit
-    # generate a list of pairs [n, # of times n appears in the ns]
-    freqs = scipy.stats.itemfreq(ns)
-
-    # freqs does not have zero entries; add them here
-    # this should now look like [0, whatever], [1, whatever], etc.
-    for i in range(max(ns)):
-        if freqs[i][0] < i:
-            freqs = np.insert(freqs, i, [i, 0], axis=0)
-
-    empirical = np.cumsum(freqs, axis=0)
+    # create a table of the number of times each value appears
+    counts, values = np.histogram(ns, bins=range(max(ns) + 1))
+    cumulative_counts = np.cumsum(counts)
+    empirical_cdf = cumulative_counts / cumulative_counts[-1]
 
     mu, sigma = poilog_fit(ns, trunc)
-    theoretical = poilog_cdf(range(max(ns)), mu, sigma, trunc)
+    theoretical_cdf = poilog_cdf(range(max(ns)), mu, sigma, trunc)
 
     return empirical, theoretical
