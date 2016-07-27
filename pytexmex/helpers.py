@@ -17,38 +17,36 @@ def f_transform_sample(ns, trunc=True):
     '''
     Transform a list of counts into their F values
 
-    Returns: list
+    Returns: list of floats
     '''
 
     mu, sigma = poilog_fit(ns, trunc)
     cdf = poilog_cdf(ns, mu, sigma, trunc)
     return cdf
 
-def transform_table(table, transform, trunc=True):
+def z_transform_table(table, trunc=True):
     '''
-    Transform a table, column by column
+    Transform an OTU table in a table of z values
 
     table: pandas.DataFrame
-      the OTU table; all its columns should be the integer counts
-    transform: function :: list of integers -> list of integers
-      the data transformation to be applied to each column. must have
-      mu, sigma, and trunc as parameters
 
     returns: pandas.DataFrame
     '''
 
-    def f(ns):
-        mu, sigma = poilog_fit(ns, trunc)
-        transformed_ns = transform(ns, mu=mu, sigma=sigma, trunc=trunc)
-        return transformed_ns
-
-    return table.apply(f, axis=0)
-
-def z_transform_table(table, trunc=True):
-    return transform_table(table, transform=z_transform_sample, trunc=trunc)
+    fun = lambda x: z_transform_sample(x, trunc=trunc)
+    return table.apply(fun, axis=0)
 
 def f_transform_table(table, trunc=True):
-    return transform_table(table, transform=f_transform_sample, trunc=trun)
+    '''
+    Transform an OTU table in a table of F values
+
+    table: pandas.DataFrame
+
+    returns: pandas.DataFrame
+    '''
+
+    fun = lambda x: f_transform_sample(x, trunc=trunc)
+    return table.apply(fun, axis=0)
 
 def pp_plot_data(ns, trunc=True):
     '''
@@ -56,11 +54,16 @@ def pp_plot_data(ns, trunc=True):
     scipy's `scipy.stats.probplot` for this (which would require writing a `poilog`
     distribution).
 
-    Returns: (list of floats, list of floats)
-      the empirical and theoretical cdfs
+    ns : list of floats
+
+    returns: (list of floats, list of floats)
+      the empirical and theoretical cdf values, going from 0 up to the maximum
+      of the input ns
     '''
 
-    # create a table of the number of times each value appears
+    if trunc:
+        ns = [n for n in ns if n > 0]
+
     counts, values = np.histogram(ns, bins=range(max(ns) + 1))
     cumulative_counts = np.cumsum(counts)
     empirical_cdf = cumulative_counts / cumulative_counts[-1]
@@ -68,4 +71,4 @@ def pp_plot_data(ns, trunc=True):
     mu, sigma = poilog_fit(ns, trunc)
     theoretical_cdf = poilog_cdf(range(max(ns)), mu, sigma, trunc)
 
-    return empirical, theoretical
+    return empirical_cdf, theoretical_cdf
