@@ -21,27 +21,24 @@ def poilog_exp_integrand_max(n, mu, sigma):
 
     return xopt, -fopt
 
-def poilog_bounds(n, mu, sigma, fold=1e-9, guess=1.0, guess_multiplier=2.0):
+def poilog_upper_bound(n, mu, sigma, fold=1e-9, guess=1.0, guess_multiplier=2.0):
     '''
-    Pick reasonable bounds for the poilog integral. Start at the place where
-    the integrand is maximized, then go out left and right until the integrand
+    Pick a reasonable upper bound for the poilog integral. Start at the place where
+    the integrand is maximized, then go out until the integrand
     falls to some fold of its maximum value.
 
-    Returns: (float, float)
-       lower bound, upper bound
+    returns: float
     '''
 
     xopt, fopt = poilog_exp_integrand_max(n, mu, sigma)
     f = lambda x: poilog_exp_integrand(x, n, mu, sigma) - fopt - np.log(fold)
 
-
-    while f(xopt - guess) > 0 or f(xopt + guess) > 0:
+    while f(xopt + guess) > 0:
         guess *= guess_multiplier
 
-    lb = scipy.optimize.brentq(f, xopt - guess, xopt)
     ub = scipy.optimize.brentq(f, xopt, xopt + guess)
 
-    return lb, ub
+    return ub
 
 def poilog_pmf_notrunc(n, mu, sigma):
     '''
@@ -51,7 +48,8 @@ def poilog_pmf_notrunc(n, mu, sigma):
     if n < 0:
         raise ValueError("poilog takes nonnegative integers")
 
-    lb, ub = poilog_bounds(n, mu, sigma)
+    lb = -np.inf
+    ub = poilog_upper_bound(n, mu, sigma)
 
     # I put the factorial inside the exponent because it helps the whole thing behave better
     constant = 1.0 / (sigma * np.sqrt(2 * np.pi))
