@@ -1,5 +1,8 @@
 # Requirements
-This is written for Python 3.
+- python3
+- pandas
+- numpy
+- scipy (stats, integrate, optimize)
 
 # Usage notes
 I'm not sure the package is fully functional. You can set it up in "development" mode with:
@@ -24,3 +27,5 @@ actual html files will appear in `doc/build/html/index.html`.
 - Make sure the `__init__.py` files are [correct](http://mikegrouchy.com/blog/2012/05/be-pythonic-__init__py.html)
 - Write a `requirements.txt`
 - Write a `LICENSE`
+- The `pp_plot_data` is slow because it computes so many pmf's. There's probably a good way to start approximating the values for high `n`.
+- Package the poilog functions into a scipy-style distribution
