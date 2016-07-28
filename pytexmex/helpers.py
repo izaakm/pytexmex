@@ -15,7 +15,7 @@ def read_otu_table(fn, transpose=False):
     returns: pandas.DataFrame
     '''
 
-    table = pd.read_table(fn, header=0, index_col=0)
+    table = pd.read_table(fn, header=0, index_col=0).astype(int)
 
     if transpose:
         table = table.transpose
