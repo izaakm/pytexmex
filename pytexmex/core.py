@@ -75,10 +75,19 @@ def poilog_pmf(n, mu, sigma, trunc=True):
 def poilog_cdf(ns, mu, sigma, trunc=True):
     '''
     Cumulative distribution function
+
+    ns: sequence of integers
+      number of counts for each sequence
+    mu, sigma: float
+      poilog distribution parameters
+    trunc: bool
+      poilog distribution parameter
+
+    returns: list of floats
     '''
 
     # compute all the values up to the biggest n
-    all_pmfs = [poilog_pmf(n, mu, sigma, trunc) for n in range(max(ns) + 1)]
+    all_pmfs = [poilog_pmf(n, mu, sigma, trunc) for n in range(int(max(ns)) + 1)]
     all_cdfs = np.cumsum(all_pmfs)
 
     return [all_cdfs[n] for n in ns]
