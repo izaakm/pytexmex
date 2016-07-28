@@ -1,6 +1,30 @@
 from pytexmex.core import *
-import numpy as np
+import numpy as np, pandas as pd
 import scipy.stats
+import warnings
+
+def read_otu_table(fn, transpose=False):
+    '''
+    Read an OTU table from a filename (or filehandle). It expects to
+    have OTUs on the rows and samples on the columns (i.e., QIIME style).
+    If the table is wider than long, a warning will be issued.
+
+    transpose: bool
+      transpose the table
+
+    returns: pandas.DataFrame
+    '''
+
+    table = pd.read_table(fn, header=0, index_col=0)
+
+    if transpose:
+        table = table.transpose
+
+    height, width = table.shape
+    if width > height:
+        warnings.warn("OTU table has {} OTUs and {} samples; maybe you meant to transpose it?".format(height, width))
+
+    return table
 
 def z_transform_sample(ns, trunc=True):
     '''
@@ -26,7 +50,8 @@ def f_transform_sample(ns, trunc=True):
 
 def z_transform_table(table, trunc=True):
     '''
-    Transform an OTU table in a table of z values
+    Transform an OTU table in a table of z values. OTU tables have
+    samples on the columns and OTUs on the rows.
 
     table: pandas.DataFrame
 
@@ -38,7 +63,8 @@ def z_transform_table(table, trunc=True):
 
 def f_transform_table(table, trunc=True):
     '''
-    Transform an OTU table in a table of F values
+    Transform an OTU table in a table of F values. OTU tables have
+    samples on the columns and OTUs on the rows.
 
     table: pandas.DataFrame
 

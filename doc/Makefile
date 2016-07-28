@@ -223,3 +223,8 @@ dummy:
 	$(SPHINXBUILD) -b dummy $(ALLSPHINXOPTS) $(BUILDDIR)/dummy
 	@echo
 	@echo "Build finished. Dummy builder generates no files."
+
+# swo> for opening the html
+.PHONY: view
+view:
+	open build/html/index.html
