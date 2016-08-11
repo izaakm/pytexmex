@@ -1,4 +1,3 @@
-pytexmex
 scipy
 numpy
 pandas
