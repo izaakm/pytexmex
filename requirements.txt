@@ -1,0 +1,5 @@
+pytexmex
+scipy
+numpy
+pandas
+pytest
